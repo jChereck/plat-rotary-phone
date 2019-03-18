@@ -1,1 +1,0 @@
-# plat-rotary-phone
