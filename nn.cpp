@@ -28,9 +28,18 @@ int main(){
 	//Initialize randomization function for weight initialization
 	initRand();
 
-	//read in number of inputs from stdin
-	int numIn, readStatus;
-	readStatus = scanf("%d", &numIn);
+	//read in number of steps
+	int numSteps, readStatus;
+	readStatus = scanf("%d", &numSteps);
+
+	if( readStatus == 0 ){
+		printf("Error Reading Input\n");
+		exit(-1);
+	}
+
+	//Read in number of strides
+	int numStrides;
+	readStatus = scanf("%d", &numStrides);
 
 	if( readStatus == 0 ){
 		printf("Error Reading Input\n");
@@ -45,24 +54,15 @@ int main(){
 		printf("Error Reading Input\n");
 		exit(-1);
 	}
-
-	//Read in number of classes
-	int numClasses;
-	readStatus = scanf("%d", &numClasses);
-
-	if( readStatus == 0 ){
-		printf("Error Reading Input\n");
-		exit(-1);
-	}
 	
 	//Train on data from stdin and return weights
 	Matrix mW, mV;
 
-	train(numIn, numHidNodes, mV, mW);
+	train(numSteps, numStrides, numHidNodes, mV, mW);
 	
 	//Test with trained weights on new data from stdin
 	printf("BEGIN TESTING\n");
-	predict(numIn, numHidNodes, mV, mW);
+	predict(numSteps, numStrides, numHidNodes, mV, mW);
 
 	return 0;
 }
