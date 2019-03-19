@@ -6,6 +6,7 @@
 #define weightInitMin -1.000
 #define TRANSFER_SLOPE 2.50
 #define ITERATIONS 50000
+//#define ITERATIONS 30
 #define ETA 0.200
 
 void train(int numSteps, int numStrides, int numHidNodes, Matrix mIn, Matrix& mV, Matrix& mW);
@@ -117,7 +118,7 @@ void predict(int numSteps, int numStrides, int numHidNodes, Matrix mIn, Matrix m
 	//mY.map(transfer);
 
 	//Print output to assignment specs
-	mY.map(step);
+	/*
 	printf("Target\n");
 	for(int i = 0; i < mT.numRows(); i++){
 		mT.writeLine(i);
@@ -125,6 +126,15 @@ void predict(int numSteps, int numStrides, int numHidNodes, Matrix mIn, Matrix m
 	}
 	printf("Predicted\n");
 	for(int i = 0; i < mY.numRows(); i++){
+		mY.writeLine(i);
+		printf("\n");
+	}
+	*/
+
+	printf("Predicted\n");
+	for(int i = 0; i < mY.numRows(); i++){
+		mT.writeLine(i);
+		printf(" T --> P ");
 		mY.writeLine(i);
 		printf("\n");
 	}
@@ -185,7 +195,7 @@ void train(int numSteps, int numStrides, int numHidNodes, Matrix mIn, Matrix& mV
 	
 		//Remove transfer function to last layer
 		//Apply transfer function to Y
-		//mY.map(transfer);
+		mY.map(transfer);
 
 		//Calculate dy cost
 		Matrix mdY(mY);
@@ -211,8 +221,8 @@ void train(int numSteps, int numStrides, int numHidNodes, Matrix mIn, Matrix& mV
 
 		//Update mW
 		mV.sub( (mXb.Tdot(mdH)).scalarMul(ETA) );
-	
+
 	}
-	
+
 	return;
 }
