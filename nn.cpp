@@ -8,8 +8,8 @@
 #define ITERATIONS 50000
 #define ETA 0.200
 
-void train(int numIn, int numHidNodes, Matrix& mV, Matrix& mW);
-void predict(int numIn, int numHidNodes, Matrix mV, Matrix mW);
+void train(int numSteps, int numStrides, int numHidNodes, Matrix& mV, Matrix& mW);
+void predict(int numSteps, int numStrides, int numHidNodes, Matrix mV, Matrix mW);
 
 double transfer(double x){
 	return 1/(1.0 + exp(-1.0 * TRANSFER_SLOPE * x));
@@ -67,17 +67,18 @@ int main(){
 	return 0;
 }
 
-void predict(int numIn, int numHidNodes, Matrix mV, Matrix mW){
+void predict(int numSteps, int numStrides, int numHidNodes, Matrix mV, Matrix mW){
 
 	//Read in training matrix data
 	Matrix mIn("Raw Training Data");
 	mIn.read();
 
-	//Split raw input into X and T matricies
-	Matrix mX = mIn.extract(0, 0, 0, numIn);
+	Matrix mX = mIn.seriesSampleCol(0, numSteps, numStrides);
 	mX.setName("mX");
-	Matrix mT = mIn.extract(0, numIn, 0, 0);
-	mT.setName("mT");
+	mX.print();
+	return;
+
+	Matrix mT(2,2,2);
 
 	//Normalize mX
 	mX.normalizeCols();
@@ -126,59 +127,21 @@ void predict(int numIn, int numHidNodes, Matrix mV, Matrix mW){
 		printf("\n");
 	}
 
-	//Print confusion matricies
-	for(int c = 0; c < mY.numCols(); c++){
-		Matrix cm(2,2,0.0);
-		for(int r = 0; r < mY.numRows(); r++){
-
-			mT.get(0,0);
-
-			int myint = mY.get(r,c);
-			int mtint = mT.get(r,c);
-
-			cm.inc(myint,mtint);
-
-			/*
-			if	( myint == 0.0 && mtint == 0.0 ){
-
-				cm.inc(myint,mtint);
-
-			}else if( myint == 0.0 && mtint == 1.0 ){
-
-				cm.inc(0,1);
-
-			}else if( myint == 1.0 && mtint == 0.0 ){
-
-				cm.inc(1,0);
-
-			}else if( myint == 1.0 && mtint == 1.0 ){
-
-				cm.inc(1,1);
-
-			}else{
-				printf("Error creating confusion matrix\n");
-				exit(1);
-			}
-			*/
-		}
-		cm.printfmt("Confusion Matrix");
-		
-	}
-
 	return;
 }
 
-void train(int numIn, int numHidNodes, Matrix& mV, Matrix& mW){
+void train(int numSteps, int numStrides, int numHidNodes, Matrix& mV, Matrix& mW){
 
 	//Read in training matrix data
 	Matrix mIn("Raw Training Data");
 	mIn.read();
 
-	//Split raw input into X and T matricies
-	Matrix mX = mIn.extract(0, 0, 0, numIn);
+	Matrix mX = mIn.seriesSampleCol(0, numSteps, numStrides);
 	mX.setName("mX");
-	Matrix mT = mIn.extract(0, numIn, 0, 0);
-	mT.setName("mT");
+	mX.print();
+	return;
+
+	Matrix mT(2,2,2);
 
 	//Normalize mX
 	mX.normalizeCols();
