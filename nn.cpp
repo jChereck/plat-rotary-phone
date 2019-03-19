@@ -6,8 +6,8 @@
 #define weightInitMin -1.000
 #define TRANSFER_SLOPE 2.50
 #define ITERATIONS 5000
-#define ETA 0.200
-#define MOMENTUM 0.3
+#define ETA 0.0200
+#define MOMENTUM 0.1
 
 void train(int numSteps, int numStrides, int numHidNodes, Matrix mIn, Matrix& mV, Matrix& mW);
 void predict(int numSteps, int numStrides, int numHidNodes, Matrix mIn ,Matrix mV, Matrix mW);
@@ -83,7 +83,7 @@ void predict(int numSteps, int numStrides, int numHidNodes, Matrix mIn, Matrix m
 	mT.setName("mT");
 
 	//Normalize mX
-	mX.normalizeCols();
+	Matrix normalization = mX.normalizeCols();
 
 	//Add Bias col to mX (as mXb)
 	Matrix mXb(mX.numRows(), mX.numCols() + 1, 1.0);
@@ -116,6 +116,8 @@ void predict(int numSteps, int numStrides, int numHidNodes, Matrix mIn, Matrix m
 	//Remove transfer function to last layer
 	//Apply transfer function to Y
 	//mY.map(transfer);
+
+	//mY.normalizeCols(normalization);
 
 	//Print output to assignment specs
 	/*
@@ -182,6 +184,8 @@ void train(int numSteps, int numStrides, int numHidNodes, Matrix mIn, Matrix& mV
 	Matrix mVchangePrev;
 	bool first = true;
 
+	Matrix numRows(mX.numRows(), 1, mX.numRows());
+
 	for(int i = 0; i < ITERATIONS; i++){
 		//compute H
 		mH = mXb.dot(mV);
@@ -199,16 +203,24 @@ void train(int numSteps, int numStrides, int numHidNodes, Matrix mIn, Matrix& mV
 	
 		//Remove transfer function to last layer
 		//Apply transfer function to Y
-		mY.map(transfer);
+		//mY.map(transfer);
 
 		//Calculate dy cost
 		Matrix mdY(mY);
 		Matrix mYmTdiff(mY);
 		mYmTdiff.sub(mT);
+
+		//divide by number of samples
+		//mYmTdiff.div(numRows);
+		mYmTdiff.scalarMul(1.0/mX.numRows());
+		//mYmTdiff.print();
+
+		/*
 		mdY.mul(mYmTdiff);
 		Matrix mYtemp(mY);
 		mYtemp.scalarPreSub(1.0);
 		mdY.mul(mYtemp);
+		*/
 
 		//Calculate dhb cost
 		Matrix mdHb(mHb);
@@ -221,13 +233,16 @@ void train(int numSteps, int numStrides, int numHidNodes, Matrix mIn, Matrix& mV
 		mdH.insert(mdHb, 0, 0);
 
 		//Update mW
-		Matrix mWchange = mHb.Tdot(mdY).scalarMul(ETA);
+		Matrix mWchange = mHb.Tdot(mYmTdiff).scalarMul(ETA);
+		mWchange.setName("mW change");
 		//add momentum
+		//mWchange.print();
 		if( !first){
-			mWchange.scalarMul(1 - MOMENTUM);
+			//mWchange.scalarMul(1 - MOMENTUM);
 			mWchange.add( mWchangePrev.scalarMul(MOMENTUM) );
 		}
 		mWchangePrev = mWchange;
+		//mWchange.print();
 
 		mW.sub( mWchange );
 
@@ -238,7 +253,7 @@ void train(int numSteps, int numStrides, int numHidNodes, Matrix mIn, Matrix& mV
 		Matrix mVchange = mXb.Tdot(mdH).scalarMul(ETA);
 		//add momentum
 		if( !first){
-			mVchange.scalarMul(1 - MOMENTUM);
+			//mVchange.scalarMul(1 - MOMENTUM);
 			mVchange.add( mVchangePrev.scalarMul(MOMENTUM) );
 		}
 		mVchangePrev = mVchange;
