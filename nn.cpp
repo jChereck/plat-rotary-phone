@@ -5,9 +5,9 @@
 #define weightInitMax 1.000
 #define weightInitMin -1.000
 #define TRANSFER_SLOPE 2.50
-#define ITERATIONS 50000
-//#define ITERATIONS 30
+#define ITERATIONS 5000
 #define ETA 0.200
+#define MOMENTUM 0.3
 
 void train(int numSteps, int numStrides, int numHidNodes, Matrix mIn, Matrix& mV, Matrix& mW);
 void predict(int numSteps, int numStrides, int numHidNodes, Matrix mIn ,Matrix mV, Matrix mW);
@@ -178,6 +178,10 @@ void train(int numSteps, int numStrides, int numHidNodes, Matrix mIn, Matrix& mV
 	mW.setName("Weights W (H->Y)");
 	mW.rand(weightInitMin, weightInitMax);
 
+	Matrix mWchangePrev;
+	Matrix mVchangePrev;
+	bool first = true;
+
 	for(int i = 0; i < ITERATIONS; i++){
 		//compute H
 		mH = mXb.dot(mV);
@@ -217,10 +221,34 @@ void train(int numSteps, int numStrides, int numHidNodes, Matrix mIn, Matrix& mV
 		mdH.insert(mdHb, 0, 0);
 
 		//Update mW
-		mW.sub( (mHb.Tdot(mdY)).scalarMul(ETA) );
+		Matrix mWchange = mHb.Tdot(mdY).scalarMul(ETA);
+		//add momentum
+		if( !first){
+			mWchange.scalarMul(1 - MOMENTUM);
+			mWchange.add( mWchangePrev.scalarMul(MOMENTUM) );
+		}
+		mWchangePrev = mWchange;
+
+		mW.sub( mWchange );
 
 		//Update mW
-		mV.sub( (mXb.Tdot(mdH)).scalarMul(ETA) );
+		//mW.sub( (mHb.Tdot(mdY)).scalarMul(ETA) );
+
+		//Update mV
+		Matrix mVchange = mXb.Tdot(mdH).scalarMul(ETA);
+		//add momentum
+		if( !first){
+			mVchange.scalarMul(1 - MOMENTUM);
+			mVchange.add( mVchangePrev.scalarMul(MOMENTUM) );
+		}
+		mVchangePrev = mVchange;
+
+		mV.sub( mVchange );
+
+		//Update mV
+		//mV.sub( (mXb.Tdot(mdH)).scalarMul(ETA) );
+
+		first = false;
 
 	}
 
