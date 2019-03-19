@@ -8,8 +8,8 @@
 #define ITERATIONS 50000
 #define ETA 0.200
 
-void train(int numSteps, int numStrides, int numHidNodes, Matrix& mV, Matrix& mW);
-void predict(int numSteps, int numStrides, int numHidNodes, Matrix mV, Matrix mW);
+void train(int numSteps, int numStrides, int numHidNodes, Matrix mIn, Matrix& mV, Matrix& mW);
+void predict(int numSteps, int numStrides, int numHidNodes, Matrix mIn ,Matrix mV, Matrix mW);
 
 double transfer(double x){
 	return 1/(1.0 + exp(-1.0 * TRANSFER_SLOPE * x));
@@ -58,27 +58,28 @@ int main(){
 	//Train on data from stdin and return weights
 	Matrix mW, mV;
 
-	train(numSteps, numStrides, numHidNodes, mV, mW);
-	
-	//Test with trained weights on new data from stdin
-	printf("BEGIN TESTING\n");
-	predict(numSteps, numStrides, numHidNodes, mV, mW);
-
-	return 0;
-}
-
-void predict(int numSteps, int numStrides, int numHidNodes, Matrix mV, Matrix mW){
-
 	//Read in training matrix data
 	Matrix mIn("Raw Training Data");
 	mIn.read();
 
-	Matrix mX = mIn.seriesSampleCol(0, numSteps, numStrides);
-	mX.setName("mX");
-	mX.print();
-	return;
+	train(numSteps, numStrides, numHidNodes, mIn, mV, mW);
 
-	Matrix mT(2,2,2);
+	
+	//Test with trained weights on new data from stdin
+	printf("BEGIN TESTING\n");
+	predict(numSteps, numStrides, numHidNodes, mIn, mV, mW);
+
+	return 0;
+}
+
+void predict(int numSteps, int numStrides, int numHidNodes, Matrix mIn, Matrix mV, Matrix mW){
+
+	Matrix mIn2 = mIn.seriesSampleCol(0, numSteps, numStrides);
+
+	Matrix mX = mIn2.extract(0, 0, 0, mIn2.numCols() - 1);
+	mX.setName("mX");
+	Matrix mT = mIn2.extract(0, mIn2.numCols() - 1, 0, 0);
+	mT.setName("mT");
 
 	//Normalize mX
 	mX.normalizeCols();
@@ -111,8 +112,9 @@ void predict(int numSteps, int numStrides, int numHidNodes, Matrix mV, Matrix mW
 	Matrix mY = mHb.dot(mW);
 	mY.setName("Output");
 
+	//Remove transfer function to last layer
 	//Apply transfer function to Y
-	mY.map(transfer);
+	//mY.map(transfer);
 
 	//Print output to assignment specs
 	mY.map(step);
@@ -130,18 +132,15 @@ void predict(int numSteps, int numStrides, int numHidNodes, Matrix mV, Matrix mW
 	return;
 }
 
-void train(int numSteps, int numStrides, int numHidNodes, Matrix& mV, Matrix& mW){
+void train(int numSteps, int numStrides, int numHidNodes, Matrix mIn, Matrix& mV, Matrix& mW){
 
-	//Read in training matrix data
-	Matrix mIn("Raw Training Data");
-	mIn.read();
+	Matrix mIn2 = mIn.seriesSampleCol(0, numSteps, numStrides);
 
-	Matrix mX = mIn.seriesSampleCol(0, numSteps, numStrides);
+	Matrix mX = mIn2.extract(0, 0, 0, mIn2.numCols() - 1);
 	mX.setName("mX");
-	mX.print();
-	return;
+	Matrix mT = mIn2.extract(0, mIn2.numCols() - 1, 0, 0);
+	mT.setName("mT");
 
-	Matrix mT(2,2,2);
 
 	//Normalize mX
 	mX.normalizeCols();
@@ -184,8 +183,9 @@ void train(int numSteps, int numStrides, int numHidNodes, Matrix& mV, Matrix& mW
 		Matrix mY = mHb.dot(mW);
 		mY.setName("Output");
 	
+		//Remove transfer function to last layer
 		//Apply transfer function to Y
-		mY.map(transfer);
+		//mY.map(transfer);
 
 		//Calculate dy cost
 		Matrix mdY(mY);
